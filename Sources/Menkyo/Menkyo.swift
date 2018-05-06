@@ -10,19 +10,17 @@
 //
 
 import Foundation
-import CTLS
+import CNIOOpenSSL
+
+import Foundation
+import CNIOOpenSSL
 
 /**
  Given a path to a file on disk, parse it for certificate information
-
  - parameters:
  - fullPath: Location of a certificate file to read
  */
-public func readCertificateFile(_ fullPath: String) -> Certificate? {
-    if let certContents = readCert(pathName: fullPath) {
-        defer {
-            X509_free(certContents)
-        }
+public func readCertificateFile(_ certContents:  UnsafeMutablePointer<X509>) -> Certificate {
         let subjectName = retrieveSubjectName(cert: certContents)
         let sans = retrieveSubjectAltNames(cert: certContents)
         let issuerAlternativeName = retrieveIssuerAlternativeName(cert: certContents)
@@ -35,40 +33,12 @@ public func readCertificateFile(_ fullPath: String) -> Certificate? {
                            alternateNames: sans,
                            notBefore: notBefore,
                            notAfter: notAfter)
-    }
-    return nil
 }
 
 /**
- Find all certificates in a dictionary and use OpenSSL to parse them
-
- - parameters:
- - baseDirectory: Folder to iterate through looking for cert files
- */
-public func enumerateCertificates(baseDirectory: String) -> [String:Certificate] {
-    var infos = [String: Certificate]()
-    let enumerator = FileManager.default.enumerator(atPath: baseDirectory)
-    while true {
-        if let fileName = enumerator?.nextObject() as? String {
-            let fullPath = "\(baseDirectory)/\(fileName)"
-            if fullPath.contains(".crt") || fullPath.contains(".pem") {
-                if let certificate = readCertificateFile(fullPath) {
-                    infos[fullPath] = certificate
-                }
-            }
-        } else {
-            break
-        }
-    }
-    return infos
-}
-
-/**
-
  Based on
  https://kahdev.wordpress.com/2008/11/23/a-certificates-subject-issuer-and-its-keyusage/
  Function details from [`X509_NAME_print_ex(3)`](https://webcache.googleusercontent.com/search?q=cache:qOoOIzf7FCkJ:https://wiki.openssl.org/index.php/Manual:X509_NAME_print_ex(3))
-
  - parameters
  - name: Field of the certificate to pull out
  - debug: Print out details
@@ -163,7 +133,6 @@ func parseExtensionNames(cert: UnsafeMutablePointer<X509>, nid: Int32, nameType:
             sk_free(names)
         }
         let nameCount = sk_num(names) // Know how many elements are present in the cert
-
         var count = 0
         while count < nameCount {
             if let rawName = sk_pop(names) {
