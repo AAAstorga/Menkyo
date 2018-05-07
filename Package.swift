@@ -11,7 +11,7 @@ let package = Package(
             targets: ["Menkyo"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/vapor/vapor.git", from: "3.0.0-rc.2.7")
+        .package(url: "https://github.com/vapor/vapor.git", from: "3.0.1")
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
