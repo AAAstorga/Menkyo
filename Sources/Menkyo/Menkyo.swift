@@ -12,9 +12,6 @@
 import Foundation
 import CNIOOpenSSL
 
-import Foundation
-import CNIOOpenSSL
-
 /**
  Given a path to a file on disk, parse it for certificate information
  - parameters:
